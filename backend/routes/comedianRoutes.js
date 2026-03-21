@@ -9,7 +9,9 @@ import {
 
 import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
-import upload from "../config/multer.js";
+import createUploader from "../config/multer.js";
+
+const upload = createUploader("comedians");
 
 const router = express.Router();
 
