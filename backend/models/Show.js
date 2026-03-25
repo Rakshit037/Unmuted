@@ -1,24 +1,31 @@
 import mongoose from "mongoose";
 
 const showSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
-  },
+  title: { type: String, required: true },
+
   comedian_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Comedian",
     required: true
   },
-  venue: String,
-  show_date: Date,
-  show_time: String,
+
+  venue: { type: String, required: true },
+
+  show_date: { type: Date, required: true },
+  show_time: { type: String, required: true }, // "19:00"
+
   description: String,
+
   image: String,
 
-  // IMPORTANT (we'll use later)
+  status: {
+    type: String,
+    enum: ["upcoming", "completed", "cancelled"],
+    default: "upcoming"
+  },
+
   seat_layout: {
-    type: Object,
+    type: Object, // we’ll define structure later
     default: {}
   }
 

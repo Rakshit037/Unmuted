@@ -1,8 +1,9 @@
 import Show from "../models/Show.js";
 import fs from "fs";
 import path from "path";
+import { generateSeatsForShow } from "../utils/generateSeats.js";
 
-// CREATE
+// CREATE SHOW
 export const createShow = async (req, res) => {
   try {
     const {
@@ -11,12 +12,13 @@ export const createShow = async (req, res) => {
       venue,
       show_date,
       show_time,
-      description
+      description,
+      seat_layout,
     } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Image is required" });
-    }
+  const seatLayoutParsed = req.body.seat_layout
+  ? JSON.parse(req.body.seat_layout)
+  : {};
 
     const show = await Show.create({
       title,
@@ -25,39 +27,69 @@ export const createShow = async (req, res) => {
       show_date,
       show_time,
       description,
-      image: req.file.filename
+      seat_layout: seatLayoutParsed,
+      image: req.file ? req.file.filename : null
     });
 
+    await generateSeatsForShow(show._id, seatLayoutParsed);
+
     res.status(201).json(show);
-
   } catch (error) {
-    // 🔥 IMPORTANT: delete uploaded file if DB fails
-    if (req.file) {
-      const filePath = path.join("uploads/shows", req.file.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
     res.status(500).json({ message: error.message });
   }
 };
 
-// GET ALL
+
+
+// GET ALL SHOWS (FILTER + SORT 🔥)
 export const getShows = async (req, res) => {
   try {
-    const shows = await Show.find().populate("comedian_id", "name");
+    const {
+      search,
+      venue,
+      comedian,
+      show_date,
+      sortBy = "show_time",
+      order = "asc",
+      status
+    } = req.query;
+
+    let query = {};
+
+    // Search
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+
+    // Filters
+    if (venue) query.venue = venue;
+    if (comedian) query.comedian_id = comedian;
+    if (show_date) query.show_date = new Date(show_date);
+    if (status) query.status = status;
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const shows = await Show.find(query)
+      .populate("comedian_id", "name")
+      .sort({ [sortBy]: sortOrder });
+
     res.json(shows);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// GET ONE
+
+
+// GET SINGLE SHOW
 export const getShowById = async (req, res) => {
   try {
-    const show = await Show.findById(req.params.id).populate("comedian_id");
-    if (!show) return res.status(404).json({ message: "Not found" });
+    const show = await Show.findById(req.params.id)
+      .populate("comedian_id");
+
+    if (!show) {
+      return res.status(404).json({ message: "Show not found" });
+    }
 
     res.json(show);
   } catch (error) {
@@ -65,11 +97,16 @@ export const getShowById = async (req, res) => {
   }
 };
 
-// UPDATE
+
+
+// UPDATE SHOW
 export const updateShow = async (req, res) => {
   try {
     const show = await Show.findById(req.params.id);
-    if (!show) return res.status(404).json({ message: "Not found" });
+
+    if (!show) {
+      return res.status(404).json({ message: "Show not found" });
+    }
 
     // Delete old image if new uploaded
     if (req.file && show.image) {
@@ -79,12 +116,7 @@ export const updateShow = async (req, res) => {
       }
     }
 
-    show.title = req.body.title || show.title;
-    show.comedian_id = req.body.comedian_id || show.comedian_id;
-    show.venue = req.body.venue || show.venue;
-    show.show_date = req.body.show_date || show.show_date;
-    show.show_time = req.body.show_time || show.show_time;
-    show.description = req.body.description || show.description;
+    Object.assign(show, req.body);
 
     if (req.file) {
       show.image = req.file.filename;
@@ -93,27 +125,22 @@ export const updateShow = async (req, res) => {
     await show.save();
 
     res.json(show);
-
   } catch (error) {
-    // delete new file if error
-    if (req.file) {
-      const filePath = path.join("uploads/shows", req.file.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
     res.status(500).json({ message: error.message });
   }
 };
 
-// DELETE
+
+
+// DELETE SHOW
 export const deleteShow = async (req, res) => {
   try {
     const show = await Show.findById(req.params.id);
-    if (!show) return res.status(404).json({ message: "Not found" });
 
-    // delete image
+    if (!show) {
+      return res.status(404).json({ message: "Show not found" });
+    }
+
     if (show.image) {
       const filePath = path.join("uploads/shows", show.image);
       if (fs.existsSync(filePath)) {
@@ -124,7 +151,6 @@ export const deleteShow = async (req, res) => {
     await show.deleteOne();
 
     res.json({ message: "Show deleted" });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

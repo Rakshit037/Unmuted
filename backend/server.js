@@ -7,6 +7,8 @@ import authRoutes from "./routes/authRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 import comedianRoutes from "./routes/comedianRoutes.js";
 import showRoutes from "./routes/showRoutes.js";
+import seatRoutes from "./routes/seatRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -32,6 +34,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/comedians", comedianRoutes);
 app.use("/api/shows", showRoutes);
+app.use("/api/seats", seatRoutes);
+app.use("/api/bookings", bookingRoutes)
 
 app.get("/api/test", protect, (req, res) => {
   res.json({
