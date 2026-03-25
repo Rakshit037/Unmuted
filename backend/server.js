@@ -1,5 +1,6 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
@@ -10,7 +11,6 @@ import showRoutes from "./routes/showRoutes.js";
 import seatRoutes from "./routes/seatRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 
-dotenv.config();
 connectDB();
 
 
