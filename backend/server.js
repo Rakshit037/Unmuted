@@ -10,9 +10,9 @@ import comedianRoutes from "./routes/comedianRoutes.js";
 import showRoutes from "./routes/showRoutes.js";
 import seatRoutes from "./routes/seatRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 connectDB();
-
 
 const app = express();
 
@@ -35,7 +35,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/comedians", comedianRoutes);
 app.use("/api/shows", showRoutes);
 app.use("/api/seats", seatRoutes);
-app.use("/api/bookings", bookingRoutes)
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.get("/api/test", protect, (req, res) => {
   res.json({
