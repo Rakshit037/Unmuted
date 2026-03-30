@@ -31,6 +31,10 @@ const Navbar = () => {
               {user.role === "admin" ? "Admin" : "User"}
             </Button>
 
+            <Button color="inherit" onClick={() => navigate("/bookings")}>
+  My Bookings
+</Button>
+
             <Button color="inherit" onClick={handleLogout}>
               Logout
             </Button>

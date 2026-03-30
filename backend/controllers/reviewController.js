@@ -21,6 +21,21 @@ export const addReview = async (req, res) => {
       });
     }
 
+     if (!show_id || !rating || !comment) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const existingReview = await Review.findOne({
+      show_id,
+      user_id: userId
+    });
+
+    if (existingReview) {
+      return res.status(400).json({
+        message: "You have already reviewed this show"
+      });
+    }
+
     const review = await Review.create({
       user_id: userId,
       show_id,

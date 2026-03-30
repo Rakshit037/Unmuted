@@ -1,10 +1,13 @@
 import Navbar from "../components/Navbar";
+import ComedianPage from "./ComedianPage";
+import ShowPage from "./ShowPage";
 
 const UserDashboard = () => {
   return (
     <div>
       <Navbar />
-   <h1>User Dashboard</h1>
+      <ComedianPage />
+  <ShowPage />
    </div>
   );
 };

@@ -152,3 +152,16 @@ export const cancelBooking = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMyBookings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const bookings = await Booking.find({ user_id: userId })
+      .populate("show_id");
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
