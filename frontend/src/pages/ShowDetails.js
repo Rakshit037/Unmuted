@@ -25,7 +25,8 @@ const ShowDetails = () => {
     <Box p={3}>
       <img
         src={`http://localhost:5000/uploads/shows/${show.image}`}
-        width="100%"
+        width="500px"
+        height="500px"
         alt=""
       />
 

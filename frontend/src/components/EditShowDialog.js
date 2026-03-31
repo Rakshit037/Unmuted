@@ -12,13 +12,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import API from "../api/axios";
 import { useEffect, useState } from "react";
-import SeatLayoutBuilder from "./SeatLayoutBuilder";
 import toast from "react-hot-toast";
 
-const AddShowDialog = ({ open, handleClose, refresh }) => {
+const EditShowDialog = ({ open, handleClose, show, refresh }) => {
   const [image, setImage] = useState(null);
   const [comedians, setComedians] = useState([]);
-  const [seatLayout, setSeatLayout] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,13 +29,14 @@ const AddShowDialog = ({ open, handleClose, refresh }) => {
 
   const formik = useFormik({
     initialValues: {
-      title: "",
-      comedian_id: "",
-      venue: "",
-      show_date: "",
-      show_time: "",
-      description: ""
+      title: show?.title || "",
+      comedian_id: show?.comedian_id?._id || show?.comedian_id || "",
+      venue: show?.venue || "",
+      show_date: show?.show_date?.split("T")[0] || "",
+      show_time: show?.show_time || "",
+      description: show?.description || ""
     },
+    enableReinitialize: true,
 
     validationSchema: Yup.object({
       title: Yup.string().required("Required"),
@@ -56,17 +55,16 @@ const AddShowDialog = ({ open, handleClose, refresh }) => {
           formData.append(key, values[key]);
         });
 
-        formData.append("seat_layout", JSON.stringify(seatLayout));
         if (image) formData.append("image", image);
 
-        await API.post("/shows", formData);
+        await API.put(`/shows/${show._id}`, formData);
 
-        toast.success("Show created 🎭");
+        toast.success("Show updated 🎭");
         handleClose();
         refresh();
 
-      } catch (err) {
-        toast.error("Failed to create show");
+      } catch {
+        toast.error("Update failed");
       } finally {
         setLoading(false);
       }
@@ -75,25 +73,18 @@ const AddShowDialog = ({ open, handleClose, refresh }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add Show</DialogTitle>
+      <DialogTitle>Edit Show</DialogTitle>
 
       <DialogContent>
         <form onSubmit={formik.handleSubmit}>
           
-          <TextField
-            fullWidth
-            label="Title"
-            margin="normal"
+          <TextField fullWidth label="Title" margin="normal"
             {...formik.getFieldProps("title")}
             error={formik.touched.title && Boolean(formik.errors.title)}
             helperText={formik.touched.title && formik.errors.title}
           />
 
-          <TextField
-            select
-            fullWidth
-            label="Select Comedian"
-            margin="normal"
+          <TextField select fullWidth label="Comedian" margin="normal"
             {...formik.getFieldProps("comedian_id")}
           >
             {comedians.map((c) => (
@@ -103,45 +94,28 @@ const AddShowDialog = ({ open, handleClose, refresh }) => {
             ))}
           </TextField>
 
-          <TextField
-            fullWidth
-            label="Venue"
-            margin="normal"
+          <TextField fullWidth label="Venue" margin="normal"
             {...formik.getFieldProps("venue")}
           />
 
-          <TextField
-            type="date"
-            fullWidth
-            margin="normal"
+          <TextField type="date" fullWidth margin="normal"
             {...formik.getFieldProps("show_date")}
           />
 
-          <TextField
-            type="time"
-            fullWidth
-            margin="normal"
+          <TextField type="time" fullWidth margin="normal"
             {...formik.getFieldProps("show_time")}
           />
 
-          <TextField
-            fullWidth
-            label="Description"
-            multiline
-            rows={3}
-            margin="normal"
+          <TextField fullWidth label="Description" multiline rows={3} margin="normal"
             {...formik.getFieldProps("description")}
           />
 
-          {/* Image Upload */}
           <Box mt={2}>
             <Button variant="outlined" component="label">
-              Upload Image
+              Upload New Image
               <input hidden type="file" onChange={(e) => setImage(e.target.files[0])} />
             </Button>
           </Box>
-
-          <SeatLayoutBuilder setSeatLayout={setSeatLayout} />
 
           <Button
             type="submit"
@@ -150,13 +124,12 @@ const AddShowDialog = ({ open, handleClose, refresh }) => {
             sx={{ mt: 3 }}
             disabled={loading}
           >
-            {loading ? "Creating..." : "Create Show"}
+            {loading ? "Updating..." : "Update Show"}
           </Button>
-
         </form>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddShowDialog;
+export default EditShowDialog;

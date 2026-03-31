@@ -1,14 +1,16 @@
 import Navbar from "../components/Navbar";
-import ComedianPage from "./ComedianPage";
-import ShowPage from "./ShowPage";
+import ComedianList from "../components/ComedianList";
+import ShowList from "../components/ShowList";
 
 const UserDashboard = () => {
   return (
     <div>
       <Navbar />
-      <ComedianPage />
-  <ShowPage />
-   </div>
+      
+      {/* ONLY VIEW MODE */}
+      <ComedianList isAdmin={false} />
+      <ShowList isAdmin={false} />
+    </div>
   );
 };
 

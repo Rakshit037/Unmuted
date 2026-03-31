@@ -2,7 +2,8 @@ import {
   Dialog,
   DialogContent,
   Typography,
-  IconButton
+  IconButton,
+  Box
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -20,21 +21,29 @@ const ComedianModal = ({ open, handleClose, comedian }) => {
       </IconButton>
 
       <DialogContent>
-        <img
-          src={`http://localhost:5000/uploads/comedians/${comedian.image}`}
-          alt={comedian.name}
-          style={{ width: "100%", borderRadius: 10 }}
-        />
+        <Box textAlign="center">
+          <img
+            src={`http://localhost:5000/uploads/comedians/${comedian.image}`}
+            alt={comedian.name}
+            style={{
+              width: "80%",
+              borderRadius: 12,
+              marginBottom: 16
+            }}
+          />
+        </Box>
 
-        <Typography variant="h5" mt={2}>
+        <Typography variant="h5" fontWeight="bold">
           {comedian.name}
         </Typography>
 
-        <Typography>Age: {comedian.age}</Typography>
+        <Typography mt={1}>Age: {comedian.age}</Typography>
         <Typography>Experience: {comedian.experience}</Typography>
         <Typography>Gender: {comedian.gender}</Typography>
 
-        <Typography mt={2}>{comedian.bio}</Typography>
+        <Typography mt={2} color="text.secondary">
+          {comedian.bio}
+        </Typography>
       </DialogContent>
     </Dialog>
   );

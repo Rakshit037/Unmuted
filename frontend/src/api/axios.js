@@ -5,12 +5,12 @@ const API = axios.create({
   withCredentials: true // 🔥 VERY IMPORTANT for cookies
 });
 
-API.interceptors.request.use((req) => {
+/*API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
   }
   return req;
-});
+});*/
 
 export default API;

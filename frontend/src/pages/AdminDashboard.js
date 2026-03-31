@@ -5,11 +5,11 @@ import ShowPage from "./ShowPage";
 const AdminDashboard = () => {
   return (
     <div>
-    <Navbar />
-  <ComedianPage />
-  <ShowPage />
-  </div>
+      <Navbar />
+      <ComedianPage />
+      <ShowPage />
+    </div>
   );
-}; 
+};
 
 export default AdminDashboard;

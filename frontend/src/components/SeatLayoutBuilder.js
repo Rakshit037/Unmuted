@@ -3,7 +3,8 @@ import {
   TextField,
   Button,
   Typography,
-  MenuItem
+  MenuItem,
+  Paper
 } from "@mui/material";
 import { useState } from "react";
 
@@ -15,12 +16,7 @@ const SeatLayoutBuilder = ({ setSeatLayout }) => {
   const addLevel = () => {
     setLevels([
       ...levels,
-      {
-        level: "",
-        rows: "",
-        seats_per_row: "",
-        price: ""
-      }
+      { level: "", rows: "", seats_per_row: "", price: "" }
     ]);
   };
 
@@ -28,7 +24,6 @@ const SeatLayoutBuilder = ({ setSeatLayout }) => {
     const updated = [...levels];
     updated[index][field] = value;
     setLevels(updated);
-
     buildJSON(updated);
   };
 
@@ -49,11 +44,11 @@ const SeatLayoutBuilder = ({ setSeatLayout }) => {
   };
 
   return (
-    <Box mt={2}>
+    <Box mt={3}>
       <Typography variant="h6">Seat Layout</Typography>
 
       {levels.map((lvl, index) => (
-        <Box key={index} mt={2} p={2} border="1px solid #ccc" borderRadius={2}>
+        <Paper key={index} sx={{ mt: 2, p: 2, borderRadius: 2 }}>
           
           <TextField
             select
@@ -101,7 +96,7 @@ const SeatLayoutBuilder = ({ setSeatLayout }) => {
               handleChange(index, "price", e.target.value)
             }
           />
-        </Box>
+        </Paper>
       ))}
 
       <Button variant="outlined" onClick={addLevel} sx={{ mt: 2 }}>

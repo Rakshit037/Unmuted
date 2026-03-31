@@ -3,16 +3,20 @@ import {
   DialogTitle,
   DialogContent,
   TextField,
-  Button
+  Button,
+  Box,
+  Typography
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import API from "../api/axios";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
-const AddComedianDialog = ({ open, handleClose }) => {
+const AddComedianDialog = ({ open, handleClose, refresh }) => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -24,54 +28,125 @@ const AddComedianDialog = ({ open, handleClose }) => {
     },
 
     validationSchema: Yup.object({
-      name: Yup.string().required(),
-      age: Yup.number().required(),
-      bio: Yup.string().required(),
-      experience: Yup.string().required(),
-      gender: Yup.string().required()
+      name: Yup.string().required("Required"),
+      age: Yup.number().required("Required"),
+      bio: Yup.string().required("Required"),
+      experience: Yup.string().required("Required"),
+      gender: Yup.string().required("Required")
     }),
 
     onSubmit: async (values) => {
-      const formData = new FormData();
+      try {
+        setLoading(true);
 
-      Object.keys(values).forEach((key) => {
-        formData.append(key, values[key]);
-      });
+        const formData = new FormData();
+        Object.keys(values).forEach((key) => {
+          formData.append(key, values[key]);
+        });
 
-      formData.append("image", image);
+        if (image) formData.append("image", image);
 
-      await API.post("/comedians", formData);
+        await API.post("/comedians", formData);
 
-      handleClose();
-      window.location.reload(); // simple refresh (we’ll optimize later)
+        toast.success("Comedian added 🎤");
+        handleClose();
+        refresh(); // ✅ no reload
+
+      } catch (err) {
+        toast.error("Failed to add comedian");
+      } finally {
+        setLoading(false);
+      }
     }
   });
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    setPreview(URL.createObjectURL(file));
+    if (file) setPreview(URL.createObjectURL(file));
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>Add Comedian</DialogTitle>
 
       <DialogContent>
         <form onSubmit={formik.handleSubmit}>
-          <TextField fullWidth label="Name" margin="normal" {...formik.getFieldProps("name")} />
-          <TextField fullWidth label="Age" margin="normal" {...formik.getFieldProps("age")} />
-          <TextField fullWidth label="Bio" margin="normal" {...formik.getFieldProps("bio")} />
-          <TextField fullWidth label="Experience" margin="normal" {...formik.getFieldProps("experience")} />
-          <TextField fullWidth label="Gender" margin="normal" {...formik.getFieldProps("gender")} />
+          
+          <TextField
+            fullWidth
+            label="Name"
+            margin="normal"
+            {...formik.getFieldProps("name")}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+            helperText={formik.touched.name && formik.errors.name}
+          />
 
-          <input type="file" onChange={handleImageChange} />
+          <TextField
+            fullWidth
+            label="Age"
+            margin="normal"
+            {...formik.getFieldProps("age")}
+            error={formik.touched.age && Boolean(formik.errors.age)}
+            helperText={formik.touched.age && formik.errors.age}
+          />
 
-          {preview && <img src={preview} width="100%" alt="preview" />}
+          <TextField
+            fullWidth
+            label="Bio"
+            margin="normal"
+            {...formik.getFieldProps("bio")}
+            error={formik.touched.bio && Boolean(formik.errors.bio)}
+            helperText={formik.touched.bio && formik.errors.bio}
+          />
 
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-            Add
+          <TextField
+            fullWidth
+            label="Experience"
+            margin="normal"
+            {...formik.getFieldProps("experience")}
+            error={formik.touched.experience && Boolean(formik.errors.experience)}
+            helperText={formik.touched.experience && formik.errors.experience}
+          />
+
+          <TextField
+            fullWidth
+            label="Gender"
+            margin="normal"
+            {...formik.getFieldProps("gender")}
+            error={formik.touched.gender && Boolean(formik.errors.gender)}
+            helperText={formik.touched.gender && formik.errors.gender}
+          />
+
+          {/* Image Upload */}
+          <Box mt={2}>
+            <Button variant="outlined" component="label">
+              Upload Image
+              <input hidden type="file" onChange={handleImageChange} />
+            </Button>
+          </Box>
+
+          {preview && (
+            <Box mt={2}>
+              <Typography variant="body2">Preview:</Typography>
+              <img
+                src={preview}
+                alt="preview"
+                style={{ width: "100%", borderRadius: 10 }}
+              />
+            </Box>
+          )}
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+          >
+            {loading ? "Adding..." : "Add Comedian"}
           </Button>
+
         </form>
       </DialogContent>
     </Dialog>

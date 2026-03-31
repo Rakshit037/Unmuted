@@ -1,9 +1,12 @@
-import { TextField, Button, Typography } from "@mui/material";
+import { TextField, Button, Typography, Box } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import API from "../api/axios";
+import toast from "react-hot-toast";
+import { useState } from "react";
 
 const RegisterForm = ({ switchToLogin }) => {
+  const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -22,60 +25,48 @@ const RegisterForm = ({ switchToLogin }) => {
         .required("Required")
     }),
 
-    onSubmit: async (values, { setSubmitting }) => {
+    onSubmit: async (values) => {
       try {
+        setLoading(true);
+
         await API.post("/auth/register", {
           name: values.name,
           email: values.email,
           password: values.password
         });
 
-        alert("Registered successfully!");
+        toast.success("Registered successfully 🎉");
         switchToLogin();
 
-      } catch (error) {
-        alert("Registration failed");
+      } catch {
+        toast.error("Registration failed");
       } finally {
-        setSubmitting(false);
+        setLoading(false);
       }
     }
   });
 
   return (
     <form onSubmit={formik.handleSubmit}>
-      <TextField
-        fullWidth
-        label="Name"
-        margin="normal"
+      <TextField fullWidth label="Name" margin="normal"
         {...formik.getFieldProps("name")}
         error={formik.touched.name && Boolean(formik.errors.name)}
         helperText={formik.touched.name && formik.errors.name}
       />
 
-      <TextField
-        fullWidth
-        label="Email"
-        margin="normal"
+      <TextField fullWidth label="Email" margin="normal"
         {...formik.getFieldProps("email")}
         error={formik.touched.email && Boolean(formik.errors.email)}
         helperText={formik.touched.email && formik.errors.email}
       />
 
-      <TextField
-        fullWidth
-        label="Password"
-        type="password"
-        margin="normal"
+      <TextField fullWidth label="Password" type="password" margin="normal"
         {...formik.getFieldProps("password")}
         error={formik.touched.password && Boolean(formik.errors.password)}
         helperText={formik.touched.password && formik.errors.password}
       />
 
-      <TextField
-        fullWidth
-        label="Confirm Password"
-        type="password"
-        margin="normal"
+      <TextField fullWidth label="Confirm Password" type="password" margin="normal"
         {...formik.getFieldProps("confirmPassword")}
         error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
         helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
@@ -86,19 +77,22 @@ const RegisterForm = ({ switchToLogin }) => {
         variant="contained"
         fullWidth
         sx={{ mt: 2 }}
+        disabled={loading}
       >
-        Register
+        {loading ? "Registering..." : "Register"}
       </Button>
 
-      <Typography mt={2}>
-        Already have an account?{" "}
-        <span
-          style={{ color: "#6A0DAD", cursor: "pointer" }}
-          onClick={switchToLogin}
-        >
-          Login here
-        </span>
-      </Typography>
+      <Box mt={2}>
+        <Typography>
+          Already have an account?{" "}
+          <span
+            style={{ color: "#C9A66B", cursor: "pointer", fontWeight: 500 }}
+            onClick={switchToLogin}
+          >
+            Login here
+          </span>
+        </Typography>
+      </Box>
     </form>
   );
 };
