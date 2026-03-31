@@ -5,6 +5,9 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import SeatSelectionPage from './pages/SeatSelectionPage';
+import BookingHistory from './pages/BookingHistory';
+import ShowDetails from './pages/ShowDetails';
 
 function App() {
   return (
@@ -29,6 +32,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/show/:showId" element={<SeatSelectionPage />} />
+        <Route path="/shows/:showId" element={<ShowDetails />} />
+        <Route path="/bookings" element={<BookingHistory />} />
       </Routes>
     </BrowserRouter>
   );

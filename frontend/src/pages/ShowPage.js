@@ -1,10 +1,10 @@
 import { Box, Typography, Button } from "@mui/material";
 import { useState } from "react";
-import AddComedianDialog from "../components/AddComedianDialog";
-import ComedianList from "../components/ComedianList";
+import AddShowDialog from "../components/AddShowDialog";
+import ShowList from "../components/ShowList";
 import { useAuth } from "../context/AuthContext";
 
-const ComedianPage = () => {
+const ShowPage = () => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
 
@@ -13,20 +13,20 @@ const ComedianPage = () => {
   return (
     <Box p={3}>
       <Typography variant="h4" mb={2}>
-        Comedians
+        Shows
       </Typography>
 
       {isAdmin && (
         <Button variant="contained" onClick={() => setOpen(true)}>
-          Add Comedian
+          Add Show
         </Button>
       )}
 
-      <AddComedianDialog open={open} handleClose={() => setOpen(false)} />
+      <AddShowDialog open={open} handleClose={() => setOpen(false)} />
 
-      <ComedianList isAdmin={isAdmin} />
+      <ShowList isAdmin={isAdmin} />
     </Box>
   );
 };
 
-export default ComedianPage;
+export default ShowPage;
