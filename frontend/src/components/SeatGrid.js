@@ -8,6 +8,7 @@ const SeatGrid = ({ showId }) => {
   const [selected, setSelected] = useState([]);
   const [timer, setTimer] = useState(300);
 
+  // ✅ Fetch seats
   const fetchSeats = useCallback(async () => {
     const res = await API.get(`/seats/${showId}`);
     setSeats(res.data);
@@ -17,6 +18,7 @@ const SeatGrid = ({ showId }) => {
     fetchSeats();
   }, [fetchSeats]);
 
+  // ✅ Timer
   useEffect(() => {
     if (selected.length === 0) return;
 
@@ -35,37 +37,59 @@ const SeatGrid = ({ showId }) => {
     return () => clearInterval(interval);
   }, [selected, fetchSeats]);
 
+  // ✅ Polling (auto refresh)
+  useEffect(() => {
+    const interval = setInterval(fetchSeats, 4000);
+    return () => clearInterval(interval);
+  }, [fetchSeats]);
+
+  // ✅ Group seats
   const grouped = seats.reduce((acc, seat) => {
     if (!acc[seat.row]) acc[seat.row] = [];
     acc[seat.row].push(seat);
     return acc;
   }, {});
 
-  const handleSelect = async (seat) => {
+ // inside your existing code
+
+const handleSelect = async (seat) => {
+  try {
+    if (selected.includes(seat._id)) {
+      setSelected((prev) => prev.filter((id) => id !== seat._id));
+      return;
+    }
+
     if (seat.status !== "available") return;
 
-    try {
-      await API.post("/seats/lock", { seatIds: [seat._id] });
+    await API.post("/seats/lock", { seatIds: [seat._id] });
 
-      setSelected((prev) => [...prev, seat._id]);
-      fetchSeats();
+    setSelected((prev) => [...prev, seat._id]);
 
-    } catch {
-      toast.error("Seat already locked");
-    }
-  };
+  } catch {
+    toast.error("Seat already locked");
+  }
+};
 
+  // ✅ Colors
   const getColor = (seat) => {
-    if (selected.includes(seat._id)) return "#1976d2";
-    if (seat.status === "booked") return "#d32f2f";
-    if (seat.status === "locked") return "#ed6c02";
-    return "#2e7d32";
+    if (selected.includes(seat._id)) return "#1976d2"; // 🔵
+    if (seat.status === "booked") return "#d32f2f";   // 🔴
+    if (seat.status === "locked") return "#ed6c02";   // 🟡
+    return "#2e7d32";                                 // 🟢
   };
 
-  const totalPrice = seats
-    .filter((s) => selected.includes(s._id))
-    .reduce((sum, s) => sum + s.price, 0);
+  // ✅ Selected seat objects
+  const selectedSeats = seats.filter((s) =>
+    selected.includes(s._id)
+  );
 
+  // ✅ Price
+  const totalPrice = selectedSeats.reduce(
+    (sum, s) => sum + s.price,
+    0
+  );
+
+  // ✅ Booking
   const handleBooking = async () => {
     try {
       await API.post("/bookings", {
@@ -84,7 +108,9 @@ const SeatGrid = ({ showId }) => {
 
   return (
     <Box>
-      <Typography variant="h5" mb={2}>Select Seats</Typography>
+      <Typography variant="h5" mb={2}>
+        Select Seats
+      </Typography>
 
       {/* Legend */}
       <Box mb={2}>
@@ -100,14 +126,16 @@ const SeatGrid = ({ showId }) => {
             <Button
               key={seat._id}
               variant="contained"
-              disabled={seat.status !== "available"}
               onClick={() => handleSelect(seat)}
               sx={{
                 minWidth: 40,
                 backgroundColor: getColor(seat),
+                color: "#fff",
                 transition: "0.2s",
+
                 "&:hover": {
-                  transform: "scale(1.1)"
+                  transform: "scale(1.1)",
+                  backgroundColor: "#1976d2",
                 }
               }}
             >
@@ -119,10 +147,25 @@ const SeatGrid = ({ showId }) => {
 
       {/* Booking Panel */}
       <Paper sx={{ mt: 4, p: 3, borderRadius: 3 }}>
-        <Typography>Selected Seats: {selected.length}</Typography>
-        <Typography>Total Price: ₹{totalPrice}</Typography>
+        <Typography>
+          Selected Seats: {selectedSeats.length}
+        </Typography>
 
-        {selected.length > 0 && (
+        {/* ✅ Seat Numbers List */}
+        <Typography sx={{ mt: 1 }}>
+          Seats:{" "}
+          {selectedSeats.length > 0
+            ? selectedSeats
+                .map((s) => `${s.row}${s.number}`)
+                .join(", ")
+            : "None"}
+        </Typography>
+
+        <Typography sx={{ mt: 1 }}>
+          Total Price: ₹{totalPrice}
+        </Typography>
+
+        {selectedSeats.length > 0 && (
           <>
             <Typography color="error" mt={1}>
               Time Left: {Math.floor(timer / 60)}:

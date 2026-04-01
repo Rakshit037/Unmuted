@@ -50,7 +50,7 @@ const AddComedianDialog = ({ open, handleClose, refresh }) => {
 
         toast.success("Comedian added 🎤");
         handleClose();
-        refresh(); // ✅ no reload
+        refresh(); // refresh parent list
 
       } catch (err) {
         toast.error("Failed to add comedian");
@@ -67,12 +67,19 @@ const AddComedianDialog = ({ open, handleClose, refresh }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
+      maxWidth="sm"
+      disableEnforceFocus // ✅ prevent focus trap conflicts
+      disableAutoFocus     // ✅ prevents initial autofocus
+    >
       <DialogTitle>Add Comedian</DialogTitle>
 
       <DialogContent>
         <form onSubmit={formik.handleSubmit}>
-          
+
           <TextField
             fullWidth
             label="Name"

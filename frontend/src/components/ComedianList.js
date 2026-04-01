@@ -77,7 +77,8 @@ const ComedianList = ({ isAdmin = false }) => {
               component="img"
               image={`http://localhost:5000/uploads/comedians/${c.image}`}
               sx={{
-                height: 220,
+                height: 300,
+                width: 400,
                 objectFit: "cover"
               }}
             />
