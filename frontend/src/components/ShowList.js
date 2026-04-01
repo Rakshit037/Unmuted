@@ -1,20 +1,9 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
-import {
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Box,
-  Button,
-  TextField,
-  MenuItem,
-  Chip
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Grid, Box, TextField, MenuItem, Typography, Chip } from "@mui/material";
 import EditShowDialog from "./EditShowDialog";
 import toast from "react-hot-toast";
+import ShowCard from "./ShowCard";
 
 const ShowList = ({ isAdmin = false }) => {
   const [shows, setShows] = useState([]);
@@ -27,8 +16,6 @@ const ShowList = ({ isAdmin = false }) => {
 
   const [selected, setSelected] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
-
-  const navigate = useNavigate();
 
   const fetchShows = async () => {
     try {
@@ -44,62 +31,76 @@ const ShowList = ({ isAdmin = false }) => {
     fetchShows();
   }, []);
 
+  // ✅ LOCAL DATE HELPER
+  const getDateOnly = (date) => {
+    const d = new Date(date);
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0")
+    );
+  };
+
+  const todayStr = getDateOnly(new Date());
+
   // 🔥 FILTER + SEARCH + SORT
   useEffect(() => {
     let data = [...shows];
 
-    // Search
     if (search) {
       data = data.filter((s) =>
         s.title.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Venue Filter
     if (venueFilter) {
       data = data.filter((s) => s.venue === venueFilter);
     }
 
-    // Date Filter
     if (dateFilter) {
-      data = data.filter((s) => s.show_date.startsWith(dateFilter));
+      data = data.filter(
+        (s) => getDateOnly(s.show_date) === dateFilter
+      );
     }
 
-    // Sorting
     if (sort === "date_asc") {
-      data.sort((a, b) => new Date(a.show_date) - new Date(b.show_date));
+      data.sort(
+        (a, b) => new Date(a.show_date) - new Date(b.show_date)
+      );
     } else if (sort === "date_desc") {
-      data.sort((a, b) => new Date(b.show_date) - new Date(a.show_date));
+      data.sort(
+        (a, b) => new Date(b.show_date) - new Date(a.show_date)
+      );
     } else if (sort === "title_asc") {
-      data.sort((a, b) => a.title.localeCompare(b.title));
+      data.sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
     }
 
     setFiltered(data);
   }, [search, venueFilter, dateFilter, sort, shows]);
 
-  const handleDelete = async (id) => {
-    try {
-      await API.delete(`/shows/${id}`);
-      setShows((prev) => prev.filter((s) => s._id !== id));
-      toast.success("Deleted successfully");
-    } catch {
-      toast.error("Delete failed");
-    }
-  };
-
-  const getStatusColor = (status) => {
-    if (status === "upcoming") return "success";
-    if (status === "completed") return "default";
-    return "error";
-  };
-
   const uniqueVenues = [...new Set(shows.map((s) => s.venue))];
+
+  // ✅ FINAL DATE-BASED GROUPING
+  const todayShows = filtered.filter(
+    (s) => getDateOnly(s.show_date) === todayStr
+  );
+
+  const upcomingShows = filtered.filter(
+    (s) => getDateOnly(s.show_date) > todayStr
+  );
+
+  const completedShows = filtered.filter(
+    (s) => getDateOnly(s.show_date) < todayStr
+  );
 
   return (
     <Box>
-
-      {/* 🔍 FILTER BAR */}
-      <Box display="flex" gap={2} mb={3} flexWrap="wrap">
+      {/* FILTER BAR */}
+      <Box display="flex" gap={6} mb={3} mt={3} flexWrap="wrap">
         <TextField
           placeholder="Search shows..."
           value={search}
@@ -141,96 +142,74 @@ const ShowList = ({ isAdmin = false }) => {
         </TextField>
       </Box>
 
-      {/* 🎭 SHOW CARDS */}
-      <Grid container spacing={3}>
-        {filtered.map((show) => (
-          <Grid item xs={12} sm={6} md={4} key={show._id}>
-            <Card
-              onClick={() => navigate(`/shows/${show._id}`)}
-              sx={{
-                cursor: "pointer",
-                borderRadius: 4,
-                overflow: "hidden",
-                transition: "0.3s",
-                position: "relative",
-                "&:hover": {
-                  transform: "scale(1.03)",
-                  boxShadow: 8
-                }
-              }}
-            >
-              {/* IMAGE */}
-              <CardMedia
-                component="img"
-                height="220"
-                image={`http://localhost:5000/uploads/shows/${show.image}`}
-              />
-
-              {/* STATUS BADGE */}
-              <Chip
-                label={show.status}
-                color={getStatusColor(show.status)}
-                sx={{
-                  position: "absolute",
-                  top: 10,
-                  right: 10,
-                  textTransform: "capitalize"
-                }}
-              />
-
-              {/* CONTENT */}
-              <CardContent>
-                <Typography variant="h6" noWrap>
-                  {show.title}
-                </Typography>
-
-                <Typography variant="body2" color="text.secondary">
-                  📍 {show.venue}
-                </Typography>
-
-                <Typography variant="body2">
-                  📅 {show.show_date}
-                </Typography>
-
-                <Typography variant="body2">
-                  ⏰ {show.show_time}
-                </Typography>
-              </CardContent>
-
-              {/* ADMIN ACTIONS */}
-              {isAdmin && (
-                <Box sx={{ p: 2, display: "flex", gap: 1 }}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelected(show);
-                      setEditOpen(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-
-                  <Button
-                    fullWidth
-                    color="error"
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(show._id);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              )}
-            </Card>
+      {/* TODAY */}
+      {todayShows.length > 0 && (
+        <Box mb={4}>
+          <Typography variant="h5" mb={2}>
+            Today <Chip label="🔥" color="secondary" size="small" />
+          </Typography>
+          <Grid container spacing={3}>
+            {todayShows.map((show) => (
+              <Grid item xs={12} sm={6} md={4} key={show._id}>
+                <ShowCard
+                  show={show}
+                  isAdmin={isAdmin}
+                  setSelected={setSelected}
+                  setEditOpen={setEditOpen}
+                  refresh={fetchShows}
+                  isToday={true}
+                />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        </Box>
+      )}
 
-      {/* EMPTY STATE */}
+      {/* UPCOMING */}
+      {upcomingShows.length > 0 && (
+        <Box mb={4}>
+          <Typography variant="h5" mb={2}>
+            Upcoming
+          </Typography>
+          <Grid container spacing={3}>
+            {upcomingShows.map((show) => (
+              <Grid item xs={12} sm={6} md={4} key={show._id}>
+                <ShowCard
+                  show={show}
+                  isAdmin={isAdmin}
+                  setSelected={setSelected}
+                  setEditOpen={setEditOpen}
+                  refresh={fetchShows}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* COMPLETED */}
+      {completedShows.length > 0 && (
+        <Box mb={4}>
+          <Typography variant="h5" mb={2}>
+            Completed
+          </Typography>
+          <Grid container spacing={3}>
+            {completedShows.map((show) => (
+              <Grid item xs={12} sm={6} md={4} key={show._id}>
+                <ShowCard
+                  show={show}
+                  isAdmin={isAdmin}
+                  setSelected={setSelected}
+                  setEditOpen={setEditOpen}
+                  refresh={fetchShows}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* EMPTY */}
       {filtered.length === 0 && (
         <Typography mt={3} textAlign="center">
           No shows found 😔

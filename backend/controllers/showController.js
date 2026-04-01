@@ -16,9 +16,9 @@ export const createShow = async (req, res) => {
       seat_layout,
     } = req.body;
 
-  const seatLayoutParsed = req.body.seat_layout
-  ? JSON.parse(req.body.seat_layout)
-  : {};
+    const seatLayoutParsed = req.body.seat_layout
+      ? JSON.parse(req.body.seat_layout)
+      : {};
 
     const show = await Show.create({
       title,
@@ -65,13 +65,31 @@ export const getShows = async (req, res) => {
     if (venue) query.venue = venue;
     if (comedian) query.comedian_id = comedian;
     if (show_date) query.show_date = new Date(show_date);
-    if (status) query.status = status;
+    // if (status) query.status = status;
 
     const sortOrder = order === "asc" ? 1 : -1;
 
-    const shows = await Show.find(query)
+    let shows = await Show.find(query)
       .populate("comedian_id", "name")
       .sort({ [sortBy]: sortOrder });
+
+    const now = new Date();
+    shows = shows.map(show => {
+      // Ensure show_date is a Date object
+      const datePart = new Date(show.show_date);
+
+      // Split show_time into hours and minutes
+      const [hours, minutes] = show.show_time.split(":").map(Number);
+
+      // Create a combined datetime
+      const showDateTime = new Date(datePart);
+      showDateTime.setHours(hours, minutes, 0, 0);
+
+      const isToday = showDateTime.toDateString() === now.toDateString();
+      const dynamicStatus = isToday ? "today" : showDateTime > now ? "upcoming" : "completed";
+
+      return { ...show.toObject(), status: dynamicStatus };
+    });
 
     res.json(shows);
   } catch (error) {

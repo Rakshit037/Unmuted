@@ -19,6 +19,19 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "Invalid seats" });
     }
 
+    // Fetch show details
+    const show = await Show.findById(seats[0].show_id);
+
+    const showDateTime = new Date(`${show.show_date.toISOString().split("T")[0]}T${show.show_time}`);
+
+    const bookingDeadline = new Date(showDateTime.getTime() - 90 * 60 * 1000);
+
+    if (now > bookingDeadline) {
+      return res.status(400).json({
+        message: "Booking allowed only 90 Minutes before show"
+      });
+    }
+
     // Validate seats
     for (const seat of seats) {
       if (
@@ -52,9 +65,6 @@ export const createBooking = async (req, res) => {
       seats: seatIds,
       total_price
     });
-
-    // Fetch show details
-    const show = await Show.findById(seats[0].show_id);
 
     // Send email
     await sendBookingEmail({
